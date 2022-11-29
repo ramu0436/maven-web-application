@@ -1,0 +1,26 @@
+node
+{
+ properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), [$class: 'JobLocalConfiguration', changeReasonComment: ''], pipelineTriggers([pollSCM('* * * * *')])])   
+def mavenHome = tool name:"maven 3.6.3"
+
+stage('get the code in github')
+{
+git branch: 'development', credentialsId: '62b58f38-8627-4827-9ffd-5c830aa65dbc', url: 'https://github.com/ramu0436/maven-web-application.git'
+}
+
+stage('build')
+{
+sh "${mavenHome}/bin/mvn clean package"
+}
+
+stage('deploy the tomcat server')
+{
+sshagent(['8f09b343-07e1-4db4-9189-5b0ff644772f'])
+ {
+  sh "scp -o  StrictHostKeyChecking=no target/maven-web-application.war ec2-user@54.227.59.168:/usr/tomact/apache-tomcat-8.5.83/webapps/" 
+}
+}
+
+
+
+}
